@@ -3,9 +3,18 @@ import pandas as pd
 from main import calcular_custo_integra, formatar_detalhes_faixa
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Integra Contador", page_icon="💼", layout="wide")
+st.set_page_config(page_title="Calculadora SERPRO JUSTUS", page_icon="img/Logo Justus.png", layout="wide")
 
-st.title("Integra Contador")
+st.logo(
+    image="img/LogoJustusExtended.png",
+    size="large",
+    link="https://justus.com.br",
+    icon_image="img/Logo Justus.png",
+)
+st.sidebar.markdown("Bem-Vindo(a) a calculadora de Serpro da Justus!")
+
+
+st.title("Calculadora SERPRO JUSTUS")
 
 tab1, tab2 = st.tabs(["Simulador de Custos", "Tabela de Custos"])
 
@@ -13,18 +22,18 @@ with tab1:
     st.header("Simulador de Custos do Integra Contador")
 
     # Entradas do usuário
-    col1, col2 = st.columns(2)
-    with col1:
-        num_empresas = st.number_input("Número de empresas clientes", min_value=1, value=1, step=1)
-        consultas_por_empresa = st.number_input("Número de consultas por empresa/mês", min_value=0, value=0, step=1)
-    with col2:
-        emissoes_por_empresa = st.number_input("Número de emissões por empresa/mês", min_value=0, value=0, step=1)
-        declaracoes_por_empresa = st.number_input("Número de declarações por empresa/mês", min_value=0, value=0, step=1)
+    num_empresas = st.number_input("Número de empresas clientes", min_value=1, value=1, step=1)
+    consultas_por_empresa = st.number_input("Número de consultas por empresa/mês", min_value=0, value=0, step=1)
+    emissoes_por_empresa = st.number_input("Número de emissões por empresa/mês", min_value=0, value=0, step=1)
+    declaracoes_por_empresa = st.number_input("Número de declarações por empresa/mês", min_value=0, value=0, step=1)
 
     if st.button("Calcular Custos"):
         resultado = calcular_custo_integra(num_empresas, consultas_por_empresa, emissoes_por_empresa, declaracoes_por_empresa)
         
+        #st.write(resultado)  # Adicionado para depuração
+
         st.subheader("Resultado da simulação")
+
         
         # Exibir custo total
         st.metric("Custo Total", f"R$ {resultado['Custo Total']:.2f}")
@@ -33,16 +42,17 @@ with tab1:
         detalhes = {
             "Tipo": ["Consultas", "Emissões", "Declarações"],
             "Custo": [
-                f"R$ {resultado['Custo Consultas']:.2f}",
-                f"R$ {resultado['Custo Emissões']:.2f}",
-                f"R$ {resultado['Custo Declarações']:.2f}"
+                f"R$ {resultado.get('Custo Consultas', 0):.2f}",
+                f"R$ {resultado.get('Custo Emissões', 0):.2f}",
+                f"R$ {resultado.get('Custo Declarações', 0):.2f}"
             ],
             "Detalhes": [
-                formatar_detalhes_faixa(resultado['Faixas Consultas']),
-                formatar_detalhes_faixa(resultado['Faixas Emissões']),
-                formatar_detalhes_faixa(resultado['Faixas Declarações'])
+                formatar_detalhes_faixa(resultado.get('Faixas Consultas', [])),
+                formatar_detalhes_faixa(resultado.get('Faixas Emissões', [])),
+                formatar_detalhes_faixa(resultado.get('Faixas Declarações', []))
             ]
         }
+
         
         df = pd.DataFrame(detalhes)
         st.table(df)
@@ -50,15 +60,19 @@ with tab1:
         # Gráfico de pizza
         fig = go.Figure(data=[go.Pie(
             labels=["Consultas", "Emissões", "Declarações"],
-            values=[resultado['Custo Consultas'], resultado['Custo Emissões'], resultado['Custo Declarações']]
+            values=[
+                resultado.get('Custo Consultas', 0),  # Usa 0 como valor padrão se a chave não existir
+                resultado.get('Custo Emissões', 0),   # Usa 0 como valor padrão se a chave não existir
+                resultado.get('Custo Declarações', 0) # Usa 0 como valor padrão se a chave não existir
+            ]
         )])
         fig.update_layout(title="Distribuição de Custos")
         st.plotly_chart(fig)
 
-    st.info("Este simulador ajuda a calcular os custos do Integra Contador com base no número de empresas e operações realizadas.")
+        st.info("Este simulador ajuda a calcular os custos do Integra Contador com base no número de empresas e operações realizadas.")
 
 with tab2:
-    st.header("Tabela de Custos do Integra Contador")
+    st.header("Tabela de Custos do Serpro")
 
     st.subheader("Como funciona o modelo de pagamento?")
     st.write("O pagamento é calculado direto na faixa do consumo total do mês.")
@@ -110,11 +124,14 @@ with tab2:
 
     st.warning("Nota: Os preços podem estar sujeitos a alterações. Consulte sempre a tabela mais recente para obter informações atualizadas.")
 
-# Adicionar informações do criador
+# Adicionar informações do criador com cor personalizada
 st.markdown("---")
-st.subheader("Informações do Criador da Aplicação")
-st.markdown("""
-**Contador:** Julio Moreira
-**E-mail:** julio@idvl.com.br
-**WhatsApp:** (41) 9.9694-6641
-""")
+st.subheader("Justus Informática")
+st.markdown(
+    """
+    **Endereço:** Rua Frederico Bahls, 666. Centro, Ponta Grossa - PR\n
+    **E-mail:** justus@justus.com.br\n
+    **Telefone:** (42) 2101 7700\n
+    **Site:** https://justus.com.br
+    """
+)
