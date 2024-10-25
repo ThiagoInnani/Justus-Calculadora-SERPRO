@@ -5,20 +5,9 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="Calculadora SERPRO JUSTUS", page_icon="img/Logo Justus.png", layout="wide")
 
-st.logo(
-    image="img/LogoJustusExtended.png",
-    size="large",
-    link="https://justus.com.br",
-    icon_image="img/Logo Justus.png",
-)
-st.sidebar.markdown("Bem-Vindo(a) a calculadora de Serpro da Justus!")
 
-
-st.title("Calculadora SERPRO JUSTUS")
-
-tab1, tab2 = st.tabs(["Simulador de Custos", "Tabela de Custos"])
-
-with tab1:
+# Função para exibir o simulador
+def simulator():
     st.header("Simulador de Custos do Integra Contador")
 
     # Entradas do usuário
@@ -29,11 +18,7 @@ with tab1:
 
     if st.button("Calcular Custos"):
         resultado = calcular_custo_integra(num_empresas, consultas_por_empresa, emissoes_por_empresa, declaracoes_por_empresa)
-        
-        #st.write(resultado)  # Adicionado para depuração
-
         st.subheader("Resultado da simulação")
-
         
         # Exibir custo total
         st.metric("Custo Total", f"R$ {resultado['Custo Total']:.2f}")
@@ -53,17 +38,16 @@ with tab1:
             ]
         }
 
-        
         df = pd.DataFrame(detalhes)
         st.table(df)
-        
+
         # Gráfico de pizza
         fig = go.Figure(data=[go.Pie(
             labels=["Consultas", "Emissões", "Declarações"],
             values=[
-                resultado.get('Custo Consultas', 0),  # Usa 0 como valor padrão se a chave não existir
-                resultado.get('Custo Emissões', 0),   # Usa 0 como valor padrão se a chave não existir
-                resultado.get('Custo Declarações', 0) # Usa 0 como valor padrão se a chave não existir
+                resultado.get('Custo Consultas', 0),
+                resultado.get('Custo Emissões', 0),
+                resultado.get('Custo Declarações', 0)
             ]
         )])
         fig.update_layout(title="Distribuição de Custos")
@@ -71,14 +55,15 @@ with tab1:
 
         st.info("Este simulador ajuda a calcular os custos do Integra Contador com base no número de empresas e operações realizadas.")
 
-with tab2:
+
+# Função para exibir a tabela de custos
+def table():
     st.header("Tabela de Custos do Serpro")
 
     st.subheader("Como funciona o modelo de pagamento?")
     st.write("O pagamento é calculado direto na faixa do consumo total do mês.")
     st.write("Confira abaixo a tabela de preços e as faixas de consumo")
 
-    # Dados para as tabelas
     dados_consulta = {
         "Faixa": range(1, 9),
         "Consumo": ["De 1 até 300", "De 301 até 1.000", "De 1.001 até 3.000", "De 3.001 até 7.000", 
@@ -100,12 +85,10 @@ with tab2:
         "Preço": ["R$ 0,40", "R$ 0,36", "R$ 0,32", "R$ 0,28", "R$ 0,24", "R$ 0,20", "R$ 0,16", "R$ 0,12"]
     }
 
-    # Criar DataFrames
     df_consulta = pd.DataFrame(dados_consulta)
     df_emissao = pd.DataFrame(dados_emissao)
     df_declaracao = pd.DataFrame(dados_declaracao)
 
-    # Exibir tabelas lado a lado
     col1, col2, col3 = st.columns(3)
 
     with col1:
@@ -121,10 +104,39 @@ with tab2:
         st.table(df_declaracao)
 
     st.markdown("Para mais informações sobre custos e detalhes do serviço, consulte a [página oficial do Integra Contador](https://loja.serpro.gov.br/integracontador).")
-
     st.warning("Nota: Os preços podem estar sujeitos a alterações. Consulte sempre a tabela mais recente para obter informações atualizadas.")
 
-# Adicionar informações do criador com cor personalizada
+
+# Definir o estado inicial se não estiver já definido
+if 'page' not in st.session_state:
+    st.session_state.page = 'simulador'
+
+st.logo(
+    image="img/LogoJustusExtended.png",
+    size="large",
+    link="https://justus.com.br",
+    icon_image="img/Logo Justus.png",
+)
+
+# Sidebar para selecionar a página
+with st.sidebar:
+    st.header("Bem-Vindo(a) à Calculadora Serpro da Justus!")
+    
+    if st.button("Simulador de Custos", type="primary"):
+        st.session_state.page = 'simulador'
+
+    if st.button("Tabela de Custos", type="primary"):
+        st.session_state.page = 'tabela'
+
+
+# Exibir a página selecionada
+if st.session_state.page == 'simulador':
+    simulator()
+elif st.session_state.page == 'tabela':
+    table()
+
+
+# Adicionar informações do criador
 st.markdown("---")
 st.subheader("Justus Informática")
 st.markdown(
